@@ -26,7 +26,18 @@ export class MyApplicationPipelineStack extends Stack {
 
         const myApp = new MyApplicationStage(this, 'Dev', {})
 
-        pipeline.addStage(myApp)
+        const devStage = pipeline.addStage(myApp)
+
+        devStage.addPost(new ShellStep('SmokeTest', {
+            envFromCfnOutputs: {
+                URL: myApp.loadBalancerAddr
+            },
+            commands: [
+                'curl -Ssf $URL'
+            ]
+        }))
+
+        pipeline.addStage(new MyApplicationStage(this, 'Prod', {}))
 
 
     }

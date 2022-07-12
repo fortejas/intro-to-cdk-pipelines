@@ -1,4 +1,4 @@
-import { Stack, StackProps, Stage, StageProps } from 'aws-cdk-lib';
+import { CfnOutput, Stack, StackProps, Stage, StageProps } from 'aws-cdk-lib';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Cluster, ContainerImage } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
@@ -6,19 +6,24 @@ import { Construct } from 'constructs';
 
 
 export class MyApplicationStage extends Stage {
+
+  loadBalancerAddr : CfnOutput
+
   constructor(scope: Construct, id: string, props?: StageProps) {
 
     super(scope, id, props)
 
     const app = new MyApplicationStack(this, 'MyApplication', {})
 
-
-
+    this.loadBalancerAddr = app.loadBalancerAddr
 
   }
 }
 
 export class MyApplicationStack extends Stack {
+
+  loadBalancerAddr : CfnOutput
+
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -34,6 +39,10 @@ export class MyApplicationStack extends Stack {
         taskImageOptions: { image: ContainerImage.fromRegistry('amazon/amazon-ecs-sample') },
         desiredCount: 1,
         publicLoadBalancer: true
+    })
+
+    this.loadBalancerAddr = new CfnOutput(this, 'LBAddress', {
+      value: `http://${app.loadBalancer.loadBalancerDnsName}`
     })
 
   }
